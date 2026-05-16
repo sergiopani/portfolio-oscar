@@ -249,31 +249,61 @@
   }
 
   /* =========================================================
-     10. Contact form — native POST to FormSubmit.co
-         El formulario envía directamente sin AJAX, evitando
-         cualquier problema de CORS. FormSubmit redirige de vuelta
-         a /?ok=1 cuando el envío es correcto.
+     10. Contact form — Web3Forms (AJAX, sin redirección)
      ========================================================= */
   function initForm() {
     const form = $("[data-form]");
     if (!form) return;
-    const submit = $(".form-submit", form);
+    const status   = $("[data-form-status]", form);
+    const submit   = $(".form-submit", form);
     const submitLabel = $(".form-submit-label", form);
 
-    form.addEventListener("submit", (e) => {
-      // Honeypot check: si el campo oculto tiene valor, es un bot
+    // Inyecta el access key en el campo oculto
+    const keyField = form.querySelector("[data-w3f-key]");
+    if (keyField) keyField.value = atob("NjkwNWExOWMtY2IzNy00YjVhLWE2YzQtY2FjMTFjMTVlYWM2");
+
+    const setStatus = (msg, kind) => {
+      if (!status) return;
+      status.textContent = msg || "";
+      status.classList.remove("is-success", "is-error");
+      if (kind) status.classList.add("is-" + kind);
+    };
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
       const honey = form.querySelector('[name="_honey"]');
-      if (honey && honey.value) { e.preventDefault(); return; }
+      if (honey && honey.value) return;
+      if (!form.reportValidity()) return;
 
-      // Validación nativa del navegador
-      if (!form.reportValidity()) { e.preventDefault(); return; }
-
-      // Feedback visual mientras se envía
       if (submit) submit.disabled = true;
+      const orig = submitLabel ? submitLabel.textContent : "";
       if (submitLabel) submitLabel.textContent = "Enviando…";
+      setStatus("Enviando tu consulta…");
 
-      // Dejamos que el navegador haga el POST nativo a FormSubmit
-      // (no hacemos preventDefault aquí para que el form se envíe)
+      try {
+        const data = Object.fromEntries(new FormData(form));
+        const res  = await fetch("https://api.web3forms.com/submit", {
+          method:  "POST",
+          headers: { "Content-Type": "application/json", "Accept": "application/json" },
+          body:    JSON.stringify(data),
+        });
+        const json = await res.json();
+
+        if (json.success) {
+          form.reset();
+          setStatus("¡Recibido! Te responderemos en menos de 24 horas laborables.", "success");
+          if (submitLabel) submitLabel.textContent = "Enviado ✓";
+          setTimeout(() => { if (submitLabel) submitLabel.textContent = orig; if (submit) submit.disabled = false; }, 5000);
+        } else {
+          throw new Error(json.message || "error");
+        }
+      } catch (err) {
+        console.warn("[form]", err);
+        setStatus("No se ha podido enviar. Escríbenos directamente a hola@normiafood.es", "error");
+        if (submitLabel) submitLabel.textContent = orig;
+        if (submit) submit.disabled = false;
+      }
     });
   }
 

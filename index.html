@@ -937,9 +937,7 @@
             </ul>
           </div>
 
-          <form class="contact-form reveal" data-form
-                action="https://formsubmit.co/b3NjYXJtcnF6Z3ZuQGdtYWlsLmNvbQ=="
-                method="POST" novalidate>
+          <form class="contact-form reveal" data-form novalidate>
             <div class="form-row">
               <label class="field">
                 <span class="field-label">Nombre y apellidos *</span>
@@ -991,12 +989,11 @@
             <!-- Honeypot anti-spam (invisible) -->
             <input type="text" name="_honey" tabindex="-1" autocomplete="off" class="form-honey" aria-hidden="true" />
 
-            <!-- FormSubmit settings -->
-            <input type="hidden" name="_subject" value="Nueva consulta NORMIA · Web" />
-            <input type="hidden" name="_template" value="table" />
-            <input type="hidden" name="_captcha" value="false" />
-            <input type="hidden" name="_next" value="https://normiafood.es/?ok=1" />
-            <input type="hidden" name="_autoresponse" value="Hemos recibido tu consulta. En menos de 24 horas laborables nos ponemos en contacto contigo. — Equipo NORMIA" />
+            <!-- Web3Forms -->
+            <input type="hidden" name="access_key" data-w3f-key />
+            <input type="hidden" name="subject" value="Nueva consulta NORMIA · Web" />
+            <input type="hidden" name="from_name" value="NORMIA Web" />
+            <input type="hidden" name="redirect" value="false" />
 
             <button type="submit" class="btn btn-primary btn-lg form-submit">
               <span class="form-submit-label">Enviar consulta</span>
@@ -1061,6 +1058,6 @@
   </footer>
 
   <!-- Scripts -->
-  <script defer src="main.js?v=20260516b"></script>
+  <script defer src="main.js?v=20260516c"></script>
 </body>
 </html>
