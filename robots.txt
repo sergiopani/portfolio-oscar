@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+
+# Bloquear activos que no aportan SEO
+Disallow: /lib/
+Disallow: /assets/photos/
+
+Sitemap: https://normiafood.es/sitemap.xml
