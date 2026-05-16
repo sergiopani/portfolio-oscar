@@ -286,13 +286,14 @@ em { font-style: normal; font-weight: 700; color: var(--accent); }
 @media (max-width: 960px) {
   .nav-toggle { display: flex; }
   .nav-links {
-    position: fixed; inset: var(--nav-h) 0 auto 0;
+    position: fixed; top: var(--nav-h); left: 0; right: 0;
     flex-direction: column;
     padding: 2rem clamp(1.2rem, 4vw, 2rem) 3rem;
     background: rgba(245, 240, 230, 0.94);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
-    transform: translateY(-110%);
+    /* translateY by -(own height + nav offset) so bottom edge lands at y:0 — fully hidden */
+    transform: translateY(calc(-100% - var(--nav-h)));
     transition: transform .5s var(--ease-out);
     border-bottom: 1px solid var(--ink-line);
     font-size: 1.4rem;
