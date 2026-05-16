@@ -249,85 +249,31 @@
   }
 
   /* =========================================================
-     10. Contact form — submission via FormSubmit ajax
-         Email is reconstructed at runtime from a base64 token,
-         so it never appears as plain text in the HTML source.
+     10. Contact form — native POST to FormSubmit.co
+         El formulario envía directamente sin AJAX, evitando
+         cualquier problema de CORS. FormSubmit redirige de vuelta
+         a /?ok=1 cuando el envío es correcto.
      ========================================================= */
   function initForm() {
     const form = $("[data-form]");
     if (!form) return;
-    const status = $("[data-form-status]", form);
     const submit = $(".form-submit", form);
     const submitLabel = $(".form-submit-label", form);
 
-    // Email token (base64). NEVER visible as plain text in HTML.
-    // We avoid embedding the raw email so it isn't scraped by spam bots.
-    const token = "b3NjYXJtcnF6Z3ZuQGdtYWlsLmNvbQ==";
-    let endpoint = "";
-    try {
-      endpoint = "https://formsubmit.co/ajax/" + atob(token);
-    } catch (_) {
-      endpoint = "";
-    }
-
-    const setStatus = (msg, kind) => {
-      if (!status) return;
-      status.textContent = msg || "";
-      status.classList.remove("is-success", "is-error");
-      if (kind) status.classList.add("is-" + kind);
-    };
-
-    form.addEventListener("submit", async (e) => {
-      e.preventDefault();
-
-      // Honeypot check
+    form.addEventListener("submit", (e) => {
+      // Honeypot check: si el campo oculto tiene valor, es un bot
       const honey = form.querySelector('[name="_honey"]');
-      if (honey && honey.value) return;
+      if (honey && honey.value) { e.preventDefault(); return; }
 
-      if (!form.reportValidity()) return;
+      // Validación nativa del navegador
+      if (!form.reportValidity()) { e.preventDefault(); return; }
 
-      if (!endpoint) {
-        setStatus("No se pudo enviar. Vuelve a intentarlo en unos minutos.", "error");
-        return;
-      }
-
-      submit.disabled = true;
-      const original = submitLabel ? submitLabel.textContent : "";
+      // Feedback visual mientras se envía
+      if (submit) submit.disabled = true;
       if (submitLabel) submitLabel.textContent = "Enviando…";
-      setStatus("Enviando tu consulta…");
 
-      try {
-        const data = new FormData(form);
-        // Remove fields FormSubmit doesn't want in ajax mode
-        data.delete("_next");
-
-        const payload = {};
-        data.forEach((v, k) => { payload[k] = v; });
-
-        const res = await fetch(endpoint, {
-          method: "POST",
-          headers: {
-            "Accept": "application/json",
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(payload),
-        });
-
-        if (!res.ok) throw new Error("HTTP " + res.status);
-
-        form.reset();
-        setStatus("¡Recibido! Te responderemos en menos de 24 horas laborables.", "success");
-        if (submitLabel) submitLabel.textContent = "Enviado ✓";
-        setTimeout(() => {
-          if (submitLabel) submitLabel.textContent = original;
-          submit.disabled = false;
-        }, 4500);
-      } catch (err) {
-        console.warn("[form]", err);
-        setStatus("No se ha podido enviar. Escríbenos por LinkedIn o vuelve a intentarlo.", "error");
-        if (submitLabel) submitLabel.textContent = original;
-        submit.disabled = false;
-      }
+      // Dejamos que el navegador haga el POST nativo a FormSubmit
+      // (no hacemos preventDefault aquí para que el form se envíe)
     });
   }
 
